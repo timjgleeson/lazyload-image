@@ -1,0 +1,24 @@
+{
+  "name": "lazyload-images",
+  "version": "0.0.1",
+  "description": "custom lazyload images script",
+  "main": "lazyload-images.js",
+  "scripts": { },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:timjgleeson/lazyload-images.git"
+  },
+  "author": {
+    "name": "Tim Gleeson"
+  },
+  "license": "BSD",
+  "devDependencies": {
+    "mocha": "~1.9.0"
+  },
+  "readme": "",
+  "readmeFilename": "Readme.md",
+  "bugs": {
+    "url": "https://github.com/timjgleeson/lazyload-images/issues"
+  },
+  "homepage": "https://github.com/timjgleeson/lazyload-images"
+}

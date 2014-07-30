@@ -1,80 +1,52 @@
-/* lazyload.js (c) Lorenzo Giuliani
- * MIT License (http://www.opensource.org/licenses/mit-license.html)
- *
- * expects a list of:
- * `<div class='.is-loading.js-lazy-image' data-src='path/to/image.jpg'><img class='js-image' alt='Image description' /></div>`
- */
+module.exports = lazyLoadImages
+module.exports.lazyLoadImagesManager = lazyLoadImagesManager
 
-!function(window){
-  var $q = function(q, res){
-        if (document.querySelectorAll) {
-          res = document.querySelectorAll(q);
-        } else {
-          var d=document
-            , a=d.styleSheets[0] || d.createStyleSheet();
-          a.addRule(q,'f:b');
-          for(var l=d.all,b=0,c=[],f=l.length;b<f;b++)
-            l[b].currentStyle.f && c.push(l[b]);
+var Emitter = require('events').EventEmitter
 
-          a.removeRule(0);
-          res = c;
-        }
-        return res;
-      }
-    , addEventListener = function(evt, fn){
-        window.addEventListener
-          ? this.addEventListener(evt, fn, false)
-          : (window.attachEvent)
-            ? this.attachEvent('on' + evt, fn)
-            : this['on' + evt] = fn;
-      }
-    , _has = function(obj, key) {
-        return Object.prototype.hasOwnProperty.call(obj, key);
-      }
-    ;
+function lazyLoadImagesManager() {
+  Emitter.call(this)
+  this.images = $('.js-lazy-image')
+}
 
-  function loadImage (el, fn) {
-    var img = new Image()
-      , src = el.getAttribute('data-src');
+function lazyLoadImages() {
+  var lli = new lazyLoadImagesManager()
+  lli.start()
+  return lli
+}
 
-    img.onload = function() {
-      $(el).find('.js-image').attr('src', src)
-      $(el).removeClass('is-loading')
+lazyLoadImagesManager.prototype.start = function () {
+  this.processScroll()
+  window.addEventListener('scroll', this.processScroll)
+}
 
-      fn()
+lazyLoadImagesManager.prototype.processScroll = function () {
+  for (var i = 0; i < this.images.length; i++) {
+    if (this.elementInViewport(this.images[i])) {
+      this.loadImage(this.images[i], i)
     }
+  }
+}
 
-    img.src = src;
+lazyLoadImagesManager.prototype.loadImage = function (el, i) {
+  var img = new Image()
+    , src = el.getAttribute('data-src')
+
+  img.onload = function() {
+    $(el).find('.js-image').attr('src', src)
+    $(el).removeClass('is-loading')
+
+    this.images.splice(i, i)
   }
 
-  function elementInViewport(el) {
-    var rect = el.getBoundingClientRect()
+  img.src = src
+}
 
-    return (
-       rect.top    >= (0 - (el.offsetHeight - (el.offsetHeight * 0.1)))
-    && rect.left   >= 0
-    && rect.top <= (window.innerHeight || document.documentElement.clientHeight)
-    )
-  }
+lazyLoadImagesManager.prototype.elementInViewport = function (el) {
+  var rect = el.getBoundingClientRect()
 
-    var images = new Array()
-      , query = $q('.js-lazy-image')
-      , processScroll = function(){
-          for (var i = 0; i < images.length; i++) {
-            if (elementInViewport(images[i])) {
-              loadImage(images[i], function () {
-                images.splice(i, i);
-              });
-            }
-          };
-        }
-      ;
-    // Array.prototype.slice.call is not callable under our lovely IE8
-    for (var i = 0; i < query.length; i++) {
-      images.push(query[i]);
-    };
-
-    processScroll();
-    addEventListener('scroll',processScroll);
-
-}(this);
+  return (
+     rect.top    >= (0 - (el.offsetHeight - (el.offsetHeight * 0.1)))
+  && rect.left   >= 0
+  && rect.top <= (window.innerHeight || document.documentElement.clientHeight)
+  )
+}
